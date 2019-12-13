@@ -22,8 +22,8 @@ provisioner:
   playbooks:
     converge: ../../playbook.yml
   inventory:
-    group_vars:
-      all:
+    host_vars:
+      instance:
         wireguard_private_key: SDMunRCMMOyBtwbWAhXveD6kdLS0yqCEC5IcVTmoL2g=
         alertmanager_slack_api_url: http://localhost/slack
 verifier:
