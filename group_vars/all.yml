@@ -1,0 +1,172 @@
+---
+# defaults file for ansible-private-cloud
+
+ufw_rules:
+  - comment: Allow SSH from local network
+    direction: in
+    from_ip: 192.168.1.0/24
+    to_port: '22'
+    proto: tcp
+    rule: allow
+
+  - comment: Allow SSH from vpn network
+    direction: in
+    from_ip: 10.0.1.0/24
+    to_port: '22'
+    proto: tcp
+    rule: allow
+
+  - default: deny
+    state: enabled
+
+mysql_databases:
+  - name: nextcloud
+    collation: utf8_general_ci
+    encoding: utf8
+    replicate: 1
+
+mysql_users: 
+  - name: nextcloud
+    host: 127.0.0.1
+    password: secret123
+    priv: nextcloud.*:ALL
+
+nextcloud_database_host: 127.0.0.1
+nextcloud_database_name: nextcloud
+nextcloud_database_user: nextcloud
+nextcloud_database_pass: secret123
+nextcloud_dir: /srv/nextcloud
+nextcloud_domain: nextcloud.trawiasty
+nextcloud_http_server_user: www-data
+nextcloud_http_server_group: www-data
+
+nginx_http_template_enable: true
+nginx_http_template:
+  default:
+    template_file: nginx/default.conf.j2
+
+wireguard_address: 10.0.1.1/24
+wireguard_private_key: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  34653430626136356338656562323834333533376232306334306264633738613938393034383638
+  6334666665343439363562323061373964636665346539380a633530323831633334666636616363
+  34373033383261353030303764336464343432386337343838353831663035653231373463656334
+  6264626539343733350a623965386630343565366163356539353730393236326661383664643162
+  37366365616135643530613332383334613166383231653230343730623436316666323833383765
+  3130653835366638363230303764393532316232643537656363
+wireguard_peers:
+  - public_key: MsabhqrHVbIvS9W2e5x/DrSOPr1T+2NXAUh/zywZTHo=
+    allowed_ips:
+      - 10.0.1.20/32
+
+alertmanager_slack_api_url: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  64393766363366613134346264303930323236393730363631363738663438303034356633633131
+  3066303133613564383165323534366238323065643839350a303139643033646431383232326562
+  62643139366237343066616434356464623064336231383261326534366565623632366335316662
+  3338376333663164390a333036356639313531303037383733386662376330623035326333616138
+  34623931383232353263633737353237343766313362663263633762333964353562346438346566
+  34326434333430316232613530393230313763666532333061363463383937383230343364353339
+  39393539626231316365386231303865626164333165653962323639666465326638666333373031
+  35626335626464356537
+alertmanager_receivers:
+  - name: slack
+    slack_configs:
+      - send_resolved: true
+        channel: '#Paweu'
+alertmanager_route:
+  group_by: 
+    - alertname
+    - cluster
+    - service
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: slack
+
+prometheus_targets:
+  node:
+    - targets:
+      - localhost:9100
+prometheus_alertmanager_config:
+  - scheme: http
+    path_prefix: /
+    static_configs:
+      - targets:
+        - 127.0.0.1:9093
+prometheus_alert_rules:
+  - alert: Watchdog
+    expr: vector(1)
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      description: 'This is an alert meant to ensure that the entire alerting pipeline is functional.
+        This alert is always firing, therefore it should always be firing in Alertmanager
+        and always fire against a receiver. There are integrations with various notification
+        mechanisms that send a notification when this alert is not firing. For example the
+        "DeadMansSnitch" integration in PagerDuty.'
+      summary: 'Ensure entire alerting pipeline is functional'
+  - alert: InstanceDown
+    expr: "up == 0"
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: "{% raw %}{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes.{% endraw %}"
+      summary: "{% raw %}Instance {{ $labels.instance }} down{% endraw %}"
+  - alert: CriticalCPULoad
+    expr: '100 - (avg by (instance) (irate(node_cpu_seconds_total{job="node",mode="idle"}[5m])) * 100) > 96'
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      description: "{% raw %}{{ $labels.instance }} of job {{ $labels.job }} has Critical CPU load for more than 2 minutes.{% endraw %}"
+      summary: "{% raw %}Instance {{ $labels.instance }} - Critical CPU load{% endraw %}"
+  - alert: CriticalRAMUsage
+    expr: '(1 - ((node_memory_MemFree_bytes + node_memory_Buffers_bytes + node_memory_Cached_bytes) / node_memory_MemTotal_bytes)) * 100 > 98'
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: "{% raw %}{{ $labels.instance }} has Critical Memory Usage more than 5 minutes.{% endraw %}"
+      summary: "{% raw %}Instance {{ $labels.instance }} has Critical Memory Usage{% endraw %}"
+  - alert: CriticalDiskSpace
+    expr: 'node_filesystem_free_bytes{mountpoint!~"^/run(/.*|$)",fstype!~"(squashfs|fuse.*)",job="node"} / node_filesystem_size_bytes{job="node"} < 0.1'
+    for: 4m
+    labels:
+      severity: critical
+    annotations:
+      description: "{% raw %}{{ $labels.instance }} of job {{ $labels.job }} has less than 10% space remaining.{% endraw %}"
+      summary: "{% raw %}Instance {{ $labels.instance }} - Critical disk space usage{% endraw %}"
+  - alert: RebootRequired
+    expr: "node_reboot_required > 0"
+    labels:
+      severity: warning
+    annotations:
+      description: "{% raw %}{{ $labels.instance }} requires a reboot.{% endraw %}"
+      summary: "{% raw %}Instance {{ $labels.instance }} - reboot required{% endraw %}"
+  - alert: ClockSkewDetected
+    expr: 'abs(node_timex_offset_seconds) * 1000 > 30'
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      description: "{% raw %}Clock skew detected on {{ $labels.instance }}. Ensure NTP is configured correctly on this host.{% endraw %}"
+      summary: "{% raw %}Instance {{ $labels.instance }} - Clock skew detected{% endraw %}"
+  - alert: MDRAID degraded
+    expr: '(node_md_disks - node_md_disks_active) != 0'
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      description: "{% raw %}MDRAID on node {{ $labels.instance }} is in degrade mode{% endraw %}"
+      summary: "{% raw %}Degraded RAID array {{ $labels.device }} on {{ $labels.instance }}: {{ $value }} disks failed{% endraw %}"
+  - alert: Low free space
+    expr: '(node_filesystem_free{mountpoint !~ "/mnt.*"} / node_filesystem_size{mountpoint !~ "/mnt.*"} * 100) < 15'
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      description: "{% raw %}Low free space on {{ $labels.instance }}{% endraw %}"
+      summary: "{% raw %}On {{ $labels.instance }} device {{ $labels.device }} mounted on {{ $labels.mountpoint }} has low free space of {{ $value }}%{% endraw %}"

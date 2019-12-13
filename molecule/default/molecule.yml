@@ -1,0 +1,32 @@
+---
+dependency:
+  name: galaxy
+  options:
+    role-file: requirements.yml
+
+driver:
+  name: docker
+lint:
+  name: yamllint
+platforms:
+  - name: instance
+    image: jrei/systemd-debian:10
+    privileged: True
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro 
+    command: /lib/systemd/systemd
+provisioner:
+  name: ansible
+  lint:
+    name: ansible-lint
+  playbooks:
+    converge: ../../playbook.yml
+  inventory:
+    group_vars:
+      all:
+        wireguard_private_key: SDMunRCMMOyBtwbWAhXveD6kdLS0yqCEC5IcVTmoL2g=
+        alertmanager_slack_api_url: http://localhost/slack
+verifier:
+  name: testinfra
+  lint:
+    name: flake8

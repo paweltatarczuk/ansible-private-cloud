@@ -1,0 +1,26 @@
+---
+- src: nginxinc.nginx
+  version: 0.12.0
+
+- src: geerlingguy.mysql
+  version: 2.9.5
+
+- name: prometheus
+  src: cloudalchemy.prometheus
+  version: 2.12.0
+
+- name: node-exporter
+  src: cloudalchemy.node-exporter
+  version: 0.17.0
+
+- name: alertmanager
+  src: cloudalchemy.alertmanager
+  version: 0.15.1
+
+- name: nextcloud
+  src: git+https://github.com/trawiasty/ansible-role-nextcloud.git
+  version: master
+
+- name: wireguard
+  src: git+https://github.com/trawiasty/ansible-role-wireguard.git
+  version: master

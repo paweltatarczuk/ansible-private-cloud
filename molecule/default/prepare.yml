@@ -1,0 +1,31 @@
+---
+
+- name: Prepare
+  hosts: instance
+  tasks:
+    - name: Ensure procps in present
+      package:
+        name: procps
+        state: present
+    
+    - name: Ensure ssl-cert is present
+      package:
+        name: ssl-cert
+        state: present
+
+    - name: Ensure unstable repository is present
+      apt_repository:
+        repo: deb http://deb.debian.org/debian/ unstable main
+        state: present
+
+    - name: Ensure unstable repository is pinned
+      copy:
+        dest: /etc/apt/preferences.d/unstable
+        content: |-
+          Package: *
+          Pin: release a=unstable
+          Pin-Priority: 90
+
+    - name: Ensure apt is updated
+      apt:
+        update_cache: yes
