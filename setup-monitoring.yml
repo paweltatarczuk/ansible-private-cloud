@@ -1,0 +1,9 @@
+---
+- name: Provision monitoring
+  hosts: instance
+  roles:
+    - name: node-exporter
+    - name: alertmanager
+    - name: prometheus
+  tags:
+    - monitoring

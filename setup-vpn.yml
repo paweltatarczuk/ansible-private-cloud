@@ -1,0 +1,7 @@
+---
+- name: Provision wireguard role
+  hosts: instance
+  roles:
+    - name: wireguard
+  tags:
+    - wireguard

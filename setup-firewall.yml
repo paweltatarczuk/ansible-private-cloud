@@ -1,0 +1,14 @@
+---
+- name: Provision firewall
+  hosts: instance
+  tasks:
+    - name: Ensure ufw is present
+      package:
+        name: ufw
+        state: present
+
+    - name: Ensure ufw rules are present
+      ufw: "{{ item }}"
+      with_items: "{{ ufw_rules }}"
+  tags:
+    - firewall

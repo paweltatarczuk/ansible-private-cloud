@@ -1,53 +1,12 @@
 ---
-# tasks file for ansible-private-cloud
-
 - name: Set up firewall
-  hosts: instance
-  tasks:
-    - name: Ensure ufw is present
-      package:
-        name: ufw
-        state: present
+  include: setup-firewall.yml
 
-    - name: Ensure ufw rules are present
-      ufw: "{{ item }}"
-      with_items: "{{ ufw_rules }}"
-  tags:
-    - firewall
+- name: Set up nextcloud
+  include: setup-nextcloud.yml
 
-- name: Provision nginx
-  hosts: instance
-  roles:
-    - name: nginxinc.nginx
-      vars:
-        nginx_install_from: os_repository
-  tags:
-    - nginx
+- name: Set up vpn
+  include: setup-vpn.yml
 
-- name: Provision mysql
-  hosts: instance
-  roles:
-    - name: geerlingguy.mysql
-
-- name: Provision nextcloud
-  hosts: instance
-  roles:
-    - name: nextcloud
-  tags:
-    - nextcloud
-
-- name: Provision wireguard role
-  hosts: instance
-  roles:
-    - name: wireguard
-  tags:
-    - wireguard
-
-- name: Provision monitoring
-  hosts: instance
-  roles:
-    - name: node-exporter
-    - name: alertmanager
-    - name: prometheus
-  tags:
-    - monitoring
+- name: Set up monitoring
+  include: setup-monitoring.yml
