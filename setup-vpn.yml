@@ -1,6 +1,6 @@
 ---
 - name: Provision wireguard role
-  hosts: instance
+  hosts: vpn
   roles:
     - name: wireguard
   tags:

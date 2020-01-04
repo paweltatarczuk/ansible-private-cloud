@@ -1,6 +1,6 @@
 ---
 - name: Provision firewall
-  hosts: instance
+  hosts: all
   tasks:
     - name: Ensure ufw is present
       package:

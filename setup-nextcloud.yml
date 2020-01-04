@@ -1,10 +1,8 @@
 ---
 - name: Provision nextcloud
-  hosts: instance
+  hosts: web
   roles:
     - name: nginxinc.nginx
-        vars:
-          nginx_install_from: os_repository
     - name: geerlingguy.mysql
     - name: nextcloud
   tags:

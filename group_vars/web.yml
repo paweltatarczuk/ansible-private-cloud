@@ -1,0 +1,58 @@
+---
+ufw_custom_rules:
+  - comment: Allow HTTP from local network
+    direction: in
+    from_ip: 192.168.1.0/24
+    to_port: '80'
+    proto: tcp
+    rule: allow
+
+  - comment: Allow HTTPS from local network
+    direction: in
+    from_ip: 192.168.1.0/24
+    to_port: '443'
+    proto: tcp
+    rule: allow
+
+  - comment: Allow HTTP from vpn network
+    direction: in
+    from_ip: 10.0.1.0/24
+    to_port: '80'
+    proto: tcp
+    rule: allow
+
+  - comment: Allow HTTPS from vpn network
+    direction: in
+    from_ip: 10.0.1.0/24
+    to_port: '443'
+    proto: tcp
+    rule: allow
+
+ufw_rules: "{{ ufw_default_rules + ufw_custom_rules }}"
+
+mysql_databases:
+  - name: nextcloud
+    collation: utf8_general_ci
+    encoding: utf8
+    replicate: 1
+
+mysql_users: 
+  - name: nextcloud
+    host: 127.0.0.1
+    password: secret123
+    priv: nextcloud.*:ALL
+
+nextcloud_database_host: 127.0.0.1
+nextcloud_database_name: nextcloud
+nextcloud_database_user: nextcloud
+nextcloud_database_pass: secret123
+nextcloud_dir: /srv/nextcloud
+nextcloud_domain: nextcloud.trawiasty
+nextcloud_http_server_user: www-nextcloud
+nextcloud_http_server_group: www-nextcloud
+
+nginx_install_from: os_repository
+nginx_http_template_enable: true
+nginx_http_template:
+  default:
+    template_file: nginx/default.conf.j2
