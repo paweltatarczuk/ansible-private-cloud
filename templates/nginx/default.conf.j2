@@ -38,7 +38,7 @@ server {
     fastcgi_hide_header X-Powered-By;
 
     # Path to the root of your installation
-    root {{ nextcloud_dir }}/nextcloud;
+    root {{ nextcloud_dir }};
 
     location = /robots.txt {
         allow all;
