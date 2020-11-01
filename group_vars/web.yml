@@ -56,3 +56,5 @@ nginx_http_template_enable: true
 nginx_http_template:
   default:
     template_file: nginx/default.conf.j2
+
+restic_backup_source_dir: "{{ nextcloud_dir }}/data"

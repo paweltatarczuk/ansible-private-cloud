@@ -1,0 +1,7 @@
+---
+- name: Provision restic role
+  hosts: all
+  roles:
+    - name: restic
+  tags:
+    - restic

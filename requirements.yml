@@ -24,3 +24,7 @@
 - name: wireguard
   src: git+https://github.com/trawiasty/ansible-role-wireguard.git
   version: master
+
+- name: restic
+  src: git+https://github.com/paweltatarczuk/ansible-role-restic.git
+  version: master

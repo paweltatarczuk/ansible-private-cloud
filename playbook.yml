@@ -10,3 +10,6 @@
 
 - name: Set up monitoring
   include: setup-monitoring.yml
+
+- name: Set up backup
+  include: setup-backup.yml
